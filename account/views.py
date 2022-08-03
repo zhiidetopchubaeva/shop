@@ -11,5 +11,5 @@ class RegisterAPIView(APIView):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return Response('Account created')
+            return Response('Account created', 201)
             
