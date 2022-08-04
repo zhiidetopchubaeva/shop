@@ -1,7 +1,10 @@
+from django.http import QueryDict
 from django.shortcuts import get_object_or_404
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework import mixins
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 from rest_framework.response import Response
 
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
@@ -20,6 +23,20 @@ class ProductViewSet(ModelViewSet):
         context = super().get_serializer_context()
         context['request'] = self.request
         return context
+
+    @swagger_auto_schema(manual_parameters=[openapi.Parameter('title', openapi.IN_QUERY, 'search products by title', type=openapi.TYPE_STRING)])
+
+
+    @action(methods=['GET'], detail=False)
+    def search(self, request):
+        title = request.query_params.get('title')
+        queryset = self.get_queryset()
+        if title:
+            queryset = queryset.filter(title__icontains=title)
+        
+        serializer = ProductSerializer(queryset, many=True, context={'request':request})
+        return Response(serializer.data, 200)
+
 
 class CategoryViewSet(mixins.CreateModelMixin, 
                     mixins.DestroyModelMixin, 
